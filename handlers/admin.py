@@ -2,7 +2,10 @@ from aiogram import Router
 from aiogram.types import Message
 from aiogram.filters import Command
 
+from middlewares.is_admin import AdminOnlyMiddleware
+
 router = Router()
+router.message.middleware(AdminOnlyMiddleware())
 
 
 @router.message(Command("addrole"))

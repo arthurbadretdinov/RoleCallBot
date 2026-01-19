@@ -2,11 +2,13 @@ import asyncio
 from aiogram import Bot, Dispatcher
 from config import BOT_TOKEN
 from handlers import help, admin, user, profile, roles, call, fallback
-
+from middlewares.is_group import GroupOnlyMiddleware
 
 async def main():
     bot = Bot(token=BOT_TOKEN)
     dp = Dispatcher()
+    
+    dp.message.middleware(GroupOnlyMiddleware())
     
     dp.include_routers(
         help.router, 
