@@ -1,8 +1,11 @@
 import asyncio
 from aiogram import Bot, Dispatcher
+
 from config import BOT_TOKEN
 from handlers import help, admin, user, profile, roles, call, fallback
 from middlewares.is_group import GroupOnlyMiddleware
+from database.engine import init_model
+
 
 async def main():
     bot = Bot(token=BOT_TOKEN)
@@ -20,6 +23,7 @@ async def main():
         fallback.router
     )
     
+    await init_model()
     await dp.start_polling(bot)
 
 
