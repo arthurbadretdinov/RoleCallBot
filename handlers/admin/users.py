@@ -2,11 +2,14 @@ from aiogram import Router
 from aiogram.types import Message
 from aiogram.filters import Command
 
+from middlewares.is_admin import AdminOnlyMiddleware
+
 router = Router()
+router.message.middleware(AdminOnlyMiddleware())
 
 
-@router.message(Command("roles"))
-async def roles_cmd(message: Message):
+@router.message(Command("registeruser"))
+async def registeruser_cmd(message: Message):
     command = message.text.split()[0] 
     args = message.text.split(maxsplit=1)
     args_text = args[1] if len(args) > 1 else ""
@@ -16,10 +19,23 @@ async def roles_cmd(message: Message):
         f"Аргументы: {args_text}\n"
         "Команда на данный момент не реализована."
     )
+
+
+@router.message(Command("unregisteruser"))
+async def unregisteruser_cmd(message: Message):
+    command = message.text.split()[0] 
+    args = message.text.split(maxsplit=1)
+    args_text = args[1] if len(args) > 1 else ""
     
-    
-@router.message(Command("rolelist"))
-async def rolelist_cmd(message: Message):
+    await message.answer(
+        f"Команда: {command}\n"
+        f"Аргументы: {args_text}\n"
+        "Команда на данный момент не реализована."
+    )
+
+
+@router.message(Command("setnicknameuser"))
+async def setnicknameuser_cmd(message: Message):
     command = message.text.split()[0] 
     args = message.text.split(maxsplit=1)
     args_text = args[1] if len(args) > 1 else ""

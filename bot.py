@@ -2,9 +2,12 @@ import asyncio
 from aiogram import Bot, Dispatcher
 
 from config import BOT_TOKEN
-from handlers import help, admin, user, profile, roles, call, fallback
+from handlers import help, call, fallback
+from handlers.admin import roles as admin_roles, users as admin_users
+from handlers.roles import self as roles_self, info as roles_info
+from handlers.user import others as user_others, self_info as user_self_info, self_manage as user_self_manage
 from middlewares.is_group import GroupOnlyMiddleware
-from database.engine import init_model
+from database.db import init_model
 
 
 async def main():
@@ -15,10 +18,13 @@ async def main():
     
     dp.include_routers(
         help.router, 
-        admin.router, 
-        user.router, 
-        profile.router, 
-        roles.router, 
+        admin_roles.router, 
+        admin_users.router,
+        user_self_manage.router,
+        user_self_info.router,
+        user_others.router,
+        roles_self.router,
+        roles_info.router,
         call.router,
         fallback.router
     )

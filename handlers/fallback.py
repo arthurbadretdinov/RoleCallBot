@@ -4,6 +4,7 @@ from aiogram import F
 
 router = Router()
 
+
 @router.message(F.text.startswith("/"))
 async def unknown_cmd(message: Message):
     await message.answer(

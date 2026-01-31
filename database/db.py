@@ -1,5 +1,7 @@
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
-from database.models import BaseModel
+
+from database.models.base import BaseModel
+from database.models import chat, user, role, userrole
 
 
 engine = create_async_engine(
