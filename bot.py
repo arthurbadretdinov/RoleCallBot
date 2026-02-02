@@ -7,6 +7,7 @@ from handlers.admin import roles as admin_roles, users as admin_users
 from handlers.roles import self as roles_self, info as roles_info
 from handlers.user import others as user_others, self_info as user_self_info, self_manage as user_self_manage
 from middlewares.is_group import GroupOnlyMiddleware
+from middlewares.db_session import DBSessionMiddleware
 from database.db import init_model
 
 
@@ -15,6 +16,7 @@ async def main():
     dp = Dispatcher()
     
     dp.message.middleware(GroupOnlyMiddleware())
+    dp.message.middleware(DBSessionMiddleware())
     
     dp.include_routers(
         help.router, 

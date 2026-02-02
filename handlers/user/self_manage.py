@@ -1,6 +1,7 @@
 from aiogram import Router
 from aiogram.types import Message
 from aiogram.filters import Command
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.db import session_maker
 from database.repositories.chat_repo import get_or_create_chat
@@ -10,7 +11,7 @@ router = Router()
 
 
 @router.message(Command("registerme"))
-async def registerme_cmd(message: Message):
+async def registerme_cmd(message: Message, session: AsyncSession):
     async with session_maker() as session:
         args = message.text.split()
         if len(args) > 2:
@@ -34,7 +35,7 @@ async def registerme_cmd(message: Message):
     
 
 @router.message(Command("unregisterme"))
-async def unregisterme_cmd(message: Message):
+async def unregisterme_cmd(message: Message, session: AsyncSession):
     command = message.text.split()[0] 
     args = message.text.split(maxsplit=1)
     args_text = args[1] if len(args) > 1 else ""
@@ -47,7 +48,7 @@ async def unregisterme_cmd(message: Message):
     
 
 @router.message(Command("setnicknameme"))
-async def setnicknameme_cmd(message: Message):
+async def setnicknameme_cmd(message: Message, session: AsyncSession):
     async with session_maker() as session:
         args = message.text.split()
         if len(args) > 2:
@@ -71,7 +72,7 @@ async def setnicknameme_cmd(message: Message):
     
     
 @router.message(Command("setactive"))
-async def setactive_cmd(message: Message):
+async def setactive_cmd(message: Message, session: AsyncSession):
     command = message.text.split()[0] 
     args = message.text.split(maxsplit=1)
     args_text = args[1] if len(args) > 1 else ""
@@ -84,7 +85,7 @@ async def setactive_cmd(message: Message):
   
     
 @router.message(Command("setinactive"))
-async def setinactive_cmd(message: Message):
+async def setinactive_cmd(message: Message, session: AsyncSession):
     command = message.text.split()[0] 
     args = message.text.split(maxsplit=1)
     args_text = args[1] if len(args) > 1 else ""

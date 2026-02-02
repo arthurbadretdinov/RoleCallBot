@@ -1,12 +1,13 @@
 from aiogram import Router
 from aiogram.types import Message
 from aiogram.filters import Command
+from sqlalchemy.ext.asyncio import AsyncSession
 
 router = Router()
 
 
 @router.message(Command("help"))
-async def help_cmd(message: Message):
+async def help_cmd(message: Message, session: AsyncSession):
     await message.answer(
         "📌 Команды бота\n\n"
         "🛠 Администраторы:\n"

@@ -1,12 +1,13 @@
 from aiogram import Router
 from aiogram.types import Message
 from aiogram.filters import Command
+from sqlalchemy.ext.asyncio import AsyncSession
 
 router = Router()
 
 
 @router.message(Command("addroleme"))
-async def addroleme_cmd(message: Message):
+async def addroleme_cmd(message: Message, session: AsyncSession):
     command = message.text.split()[0] 
     args = message.text.split(maxsplit=1)
     args_text = args[1] if len(args) > 1 else ""
@@ -19,7 +20,7 @@ async def addroleme_cmd(message: Message):
     
     
 @router.message(Command("removeroleme"))
-async def removeroleme_cmd(message: Message):
+async def removeroleme_cmd(message: Message, session: AsyncSession):
     command = message.text.split()[0] 
     args = message.text.split(maxsplit=1)
     args_text = args[1] if len(args) > 1 else ""

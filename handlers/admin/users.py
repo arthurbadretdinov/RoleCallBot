@@ -1,6 +1,7 @@
 from aiogram import Router
 from aiogram.types import Message
 from aiogram.filters import Command
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from middlewares.is_admin import AdminOnlyMiddleware
 
@@ -9,7 +10,7 @@ router.message.middleware(AdminOnlyMiddleware())
 
 
 @router.message(Command("registeruser"))
-async def registeruser_cmd(message: Message):
+async def registeruser_cmd(message: Message, session: AsyncSession):
     command = message.text.split()[0] 
     args = message.text.split(maxsplit=1)
     args_text = args[1] if len(args) > 1 else ""
@@ -22,7 +23,7 @@ async def registeruser_cmd(message: Message):
 
 
 @router.message(Command("unregisteruser"))
-async def unregisteruser_cmd(message: Message):
+async def unregisteruser_cmd(message: Message, session: AsyncSession):
     command = message.text.split()[0] 
     args = message.text.split(maxsplit=1)
     args_text = args[1] if len(args) > 1 else ""
@@ -35,7 +36,7 @@ async def unregisteruser_cmd(message: Message):
 
 
 @router.message(Command("setnicknameuser"))
-async def setnicknameuser_cmd(message: Message):
+async def setnicknameuser_cmd(message: Message, session: AsyncSession):
     command = message.text.split()[0] 
     args = message.text.split(maxsplit=1)
     args_text = args[1] if len(args) > 1 else ""
