@@ -2,7 +2,7 @@ import asyncio
 from aiogram import Bot, Dispatcher
 
 from config import BOT_TOKEN
-from handlers import help, call, fallback
+from handlers import help, call
 from handlers.admin import roles as admin_roles, users as admin_users
 from handlers.roles import self as roles_self, info as roles_info
 from handlers.user import others as user_others, self_info as user_self_info, self_manage as user_self_manage
@@ -27,8 +27,7 @@ async def main():
         user_others.router,
         roles_self.router,
         roles_info.router,
-        call.router,
-        fallback.router
+        call.router
     )
     
     await init_model()
