@@ -4,7 +4,7 @@ from aiogram.filters import Command
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.repositories.chat_repo import get_or_create_chat
-from database.repositories.user_repo import get_user, create_user, update_user_active, update_user_nickname
+from database.repositories.user_repo import delete_user, get_user, create_user, update_user_active, update_user_nickname
 
 router = Router()
 
@@ -34,16 +34,23 @@ async def registerme_cmd(message: Message, session: AsyncSession):
 
 @router.message(Command("unregisterme"))
 async def unregisterme_cmd(message: Message, session: AsyncSession):
-    command = message.text.split()[0] 
-    args = message.text.split(maxsplit=1)
-    args_text = args[1] if len(args) > 1 else ""
+    args = message.text.split()
+    if len(args) > 1:
+        await message.answer("❌ Ошибка: слишком много аргументов") 
+        return
     
-    await message.answer(
-        f"Команда: {command}\n"
-        f"Аргументы: {args_text}\n"
-        "Команда на данный момент не реализована."
-    )
+    chat = await get_or_create_chat(session, message.chat.id)
     
+    chat_id = chat.id
+    tg_user_id = message.from_user.id
+    
+    deleted = await delete_user(session, chat_id, tg_user_id)
+    if not deleted:
+        await message.answer("❌ Ошибка. Вы не зарегистрированы. Сначала используйте /registerme.")
+        return
+    
+    await message.answer("✅ Вы успешно удалены из базы данных.")
+
 
 @router.message(Command("setnicknameme"))
 async def setnicknameme_cmd(message: Message, session: AsyncSession):

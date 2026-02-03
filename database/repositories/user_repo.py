@@ -21,9 +21,17 @@ async def create_user(session, chat_id, tg_user_id, username=None, nickname=None
     )
     session.add(user)
     await session.commit()
-    await session.refresh(user)
     return user
-    
+
+
+async def delete_user(session, chat_id, tg_user_id):
+    user = await get_user(session, chat_id, tg_user_id)
+    if user:
+        await session.delete(user)
+        await session.commit()
+        return user
+    return None
+
 
 async def update_user_nickname(session, chat_id, tg_user_id, new_nickname):
     user = await get_user(session, chat_id, tg_user_id)
