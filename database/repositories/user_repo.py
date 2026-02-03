@@ -34,3 +34,14 @@ async def update_user_nickname(session, chat_id, tg_user_id, new_nickname):
     user.nickname = new_nickname
     await session.commit()
     return user
+
+
+async def update_user_active(session, chat_id, tg_user_id, is_active):
+    user = await get_user(session, chat_id, tg_user_id)
+    
+    if not user:
+        return None
+    
+    user.is_active = is_active
+    await session.commit()
+    return user
