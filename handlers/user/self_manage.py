@@ -9,6 +9,25 @@ from database.repositories.user_repo import delete_user, get_user, create_user, 
 router = Router()
 
 
+async def setactive_status(message: Message, session: AsyncSession, is_active: bool):
+    args = message.text.split()
+    if len(args) > 1:
+        await message.answer("❌ Ошибка: слишком много аргументов") 
+        return
+    
+    chat = await get_or_create_chat(session, message.chat.id)
+    chat_id = chat.id
+    tg_user_id = message.from_user.id
+    
+    user = await update_user_active(session, chat_id, tg_user_id, is_active)
+    if not user:
+        await message.answer("❌ Ошибка. Вы не зарегистрированы. Сначала используйте /registerme.")
+        return
+    
+    status_text = "активный" if is_active else "неактивный"
+    await message.answer(f"✅ Вы помечены как {status_text} участник.")
+
+
 @router.message(Command("registerme"))
 async def registerme_cmd(message: Message, session: AsyncSession):
     args = message.text.split()
@@ -77,37 +96,9 @@ async def setnicknameme_cmd(message: Message, session: AsyncSession):
     
 @router.message(Command("setactive"))
 async def setactive_cmd(message: Message, session: AsyncSession):
-    args = message.text.split()
-    if len(args) > 1:
-        await message.answer("❌ Ошибка: слишком много аргументов") 
-        return
-    
-    chat = await get_or_create_chat(session, message.chat.id)
-    chat_id = chat.id
-    tg_user_id = message.from_user.id
-    
-    user = await update_user_active(session, chat_id, tg_user_id, True)
-    if not user:
-        await message.answer("❌ Ошибка. Вы не зарегистрированы. Сначала используйте /registerme.")
-        return
-    
-    await message.answer(f"✅ Вы помечены как активный участник.")
+    await setactive_status(message, session, is_active=True)
   
     
 @router.message(Command("setinactive"))
 async def setinactive_cmd(message: Message, session: AsyncSession):
-    args = message.text.split()
-    if len(args) > 1:
-        await message.answer("❌ Ошибка: слишком много аргументов") 
-        return
-    
-    chat = await get_or_create_chat(session, message.chat.id)
-    chat_id = chat.id
-    tg_user_id = message.from_user.id
-    
-    user = await update_user_active(session, chat_id, tg_user_id, False)
-    if not user:
-        await message.answer("❌ Ошибка. Вы не зарегистрированы. Сначала используйте /registerme.")
-        return
-    
-    await message.answer(f"✅ Вы помечены как неактивный участник.")
+    await setactive_status(message, session, is_active=False)
