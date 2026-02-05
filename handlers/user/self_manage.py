@@ -5,14 +5,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.repositories.chat_repo import get_or_create_chat
 from database.repositories.user_repo import delete_user, get_user, create_user, update_user_active, update_user_nickname
+from utils.command_args import validate_command_args
 
 router = Router()
 
 
 async def setactive_status(message: Message, session: AsyncSession, is_active: bool):
-    args = message.text.split()
-    if len(args) > 1:
-        await message.answer("❌ Ошибка: слишком много аргументов") 
+    args = await validate_command_args(message, max_args=1)
+    if args is None:
         return
     
     chat = await get_or_create_chat(session, message.chat.id)
@@ -30,9 +30,8 @@ async def setactive_status(message: Message, session: AsyncSession, is_active: b
 
 @router.message(Command("registerme"))
 async def registerme_cmd(message: Message, session: AsyncSession):
-    args = message.text.split()
-    if len(args) > 2:
-        await message.answer("❌ Ошибка: слишком много аргументов. Используйте: /registerme [никнейм - необязательно].") 
+    args = await validate_command_args(message, max_args=2)
+    if args is None:
         return
     
     chat = await get_or_create_chat(session, message.chat.id)
@@ -53,9 +52,8 @@ async def registerme_cmd(message: Message, session: AsyncSession):
 
 @router.message(Command("unregisterme"))
 async def unregisterme_cmd(message: Message, session: AsyncSession):
-    args = message.text.split()
-    if len(args) > 1:
-        await message.answer("❌ Ошибка: слишком много аргументов") 
+    args = await validate_command_args(message, max_args=1)
+    if args is None:
         return
     
     chat = await get_or_create_chat(session, message.chat.id)
@@ -73,12 +71,11 @@ async def unregisterme_cmd(message: Message, session: AsyncSession):
 
 @router.message(Command("setnicknameme"))
 async def setnicknameme_cmd(message: Message, session: AsyncSession):
-    args = message.text.split()
-    if len(args) > 2:
-        await message.answer("❌ Ошибка: слишком много аргументов. Используйте: /setnicknameme <никнейм>.") 
+    args = await validate_command_args(message, max_args=2)
+    if args is None:
         return
     elif len(args) == 1:
-        await message.answer("❌ Ошибка: никнейм не указан. Используйте: /setnicknameme <никнейм>.") 
+        await message.answer("❌ Ошибка: никнейм не указан.") 
         return
     
     chat = await get_or_create_chat(session, message.chat.id)

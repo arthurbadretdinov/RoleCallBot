@@ -1,4 +1,3 @@
-from email.mime import message
 from aiogram import Router
 from aiogram.types import Message
 from aiogram.filters import Command
@@ -6,15 +5,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.repositories.chat_repo import get_or_create_chat
 from database.repositories.user_repo import get_user
+from utils.command_args import validate_command_args
 
 router = Router()
 
 
 @router.message(Command("myinfo"))
 async def myinfo_cmd(message: Message, session: AsyncSession):
-    args = message.text.split()
-    if len(args) > 1:
-        await message.answer("❌ Ошибка: слишком много аргументов") 
+    args = await validate_command_args(message, max_args=1)
+    if args is None:
         return
     
     chat = await get_or_create_chat(session, message.chat.id)
@@ -35,9 +34,8 @@ async def myinfo_cmd(message: Message, session: AsyncSession):
     
 @router.message(Command("mystatus"))
 async def mystatus_cmd(message: Message, session: AsyncSession):
-    args = message.text.split()
-    if len(args) > 1:
-        await message.answer("❌ Ошибка: слишком много аргументов") 
+    args = await validate_command_args(message, max_args=1)
+    if args is None:
         return
     
     chat = await get_or_create_chat(session, message.chat.id)
@@ -70,9 +68,8 @@ async def myroles_cmd(message: Message, session: AsyncSession):
     
 @router.message(Command("mynickname"))
 async def mynickname_cmd(message: Message, session: AsyncSession):
-    args = message.text.split()
-    if len(args) > 1:
-        await message.answer("❌ Ошибка: слишком много аргументов") 
+    args = await validate_command_args(message, max_args=1)
+    if args is None:
         return
     
     chat = await get_or_create_chat(session, message.chat.id)
