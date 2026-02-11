@@ -3,9 +3,9 @@ from aiogram.types import Message
 from aiogram.filters import Command
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from database.repositories.chat_repo import get_or_create_chat
-from database.repositories.user_repo import delete_user, get_user, create_user, update_user_active, update_user_nickname
+from database.repositories.user_repo import delete_user, create_user, update_user_active, update_user_nickname
 from utils.command_args import validate_command_args
+from utils.current_user import get_current_user_with_chat_ids, require_current_user
 
 router = Router()
 
@@ -15,17 +15,13 @@ async def setactive_status(message: Message, session: AsyncSession, is_active: b
     if args is None:
         return
     
-    chat = await get_or_create_chat(session, message.chat.id)
-    chat_id = chat.id
-    tg_user_id = message.from_user.id
-    
-    user = await update_user_active(session, chat_id, tg_user_id, is_active)
-    if not user:
-        await message.answer("❌ Ошибка. Вы не зарегистрированы. Сначала используйте /registerme.")
+    user = await require_current_user(session, message)
+    if user is None:
         return
     
-    status_text = "активный" if is_active else "неактивный"
-    await message.answer(f"✅ Вы помечены как {status_text} участник.")
+    is_status = "активный" if is_active else "неактивный"
+    await update_user_active(session, user, is_active)
+    await message.answer(f"✅ Вы помечены как {is_status} участник.")
 
 
 @router.message(Command("registerme"))
@@ -34,19 +30,15 @@ async def registerme_cmd(message: Message, session: AsyncSession):
     if args is None:
         return
     
-    chat = await get_or_create_chat(session, message.chat.id)
-    
-    chat_id = chat.id
-    tg_user_id = message.from_user.id
-    username = message.from_user.username
-    nickname = args[1] if len(args) == 2 else None
-    
-    user = await get_user(session, chat_id, tg_user_id)
+    user, chat_id, tg_user_id = await get_current_user_with_chat_ids(session, message)
     if user:
         await message.answer("❌ Вы уже зарегистрированы.")
         return
     
-    user = await create_user(session, chat_id, tg_user_id, username=username, nickname=nickname)
+    username = message.from_user.username
+    nickname = args[1] if len(args) == 2 else None   
+    
+    await create_user(session, chat_id, tg_user_id, username=username, nickname=nickname)
     await message.answer("✅ Вы успешно зарегистрированы!")
     
 
@@ -56,16 +48,11 @@ async def unregisterme_cmd(message: Message, session: AsyncSession):
     if args is None:
         return
     
-    chat = await get_or_create_chat(session, message.chat.id)
-    
-    chat_id = chat.id
-    tg_user_id = message.from_user.id
-    
-    deleted = await delete_user(session, chat_id, tg_user_id)
-    if not deleted:
-        await message.answer("❌ Ошибка. Вы не зарегистрированы. Сначала используйте /registerme.")
+    user = await require_current_user(session, message)
+    if user is None:
         return
     
+    await delete_user(session, user)
     await message.answer("✅ Вы успешно удалены из базы данных.")
 
 
@@ -78,16 +65,12 @@ async def setnicknameme_cmd(message: Message, session: AsyncSession):
         await message.answer("❌ Ошибка: никнейм не указан.") 
         return
     
-    chat = await get_or_create_chat(session, message.chat.id)
-    chat_id = chat.id
-    tg_user_id = message.from_user.id
-    nickname = args[1]
-    
-    user = await update_user_nickname(session, chat_id, tg_user_id, nickname)
-    if not user:
-        await message.answer("❌ Ошибка. Вы не зарегистрированы. Сначала используйте /registerme.")
+    user = await require_current_user(session, message)
+    if user is None:
         return
     
+    nickname = args[1]
+    await update_user_nickname(session, user, nickname)
     await message.answer(f"✅ Ваш никнейм изменён на: {nickname}")
     
     

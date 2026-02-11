@@ -3,9 +3,8 @@ from aiogram.types import Message
 from aiogram.filters import Command
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from database.repositories.chat_repo import get_or_create_chat
-from database.repositories.user_repo import get_user
 from utils.command_args import validate_command_args
+from utils.current_user import require_current_user
 
 router = Router()
 
@@ -16,44 +15,37 @@ async def myinfo_cmd(message: Message, session: AsyncSession):
     if args is None:
         return
     
-    chat = await get_or_create_chat(session, message.chat.id)
-    
-    chat_id = chat.id
-    tg_user_id = message.from_user.id
-    
-    user = await get_user(session, chat_id, tg_user_id)
-    
-    if user:
-        await message.answer(
-            f"ℹ️ Твоя информация:\n"
-            f"Никнейм: {user.nickname if user.nickname else 'Не указан'}\n"
-            f"Статус: {'Активный' if user.is_active else 'Неактивный'}\n"
-        )
-    else:
-        await message.answer("❌ Ошибка. Вы не зарегистрированы. Сначала используйте /registerme.")
-    
+    user = await require_current_user(session, message)
+    if user is None:
+        return
+
+    nickname = user.nickname or "Не указан"
+    status = "Активный" if user.is_active else "Неактивный"
+
+    await message.answer(
+        f"ℹ️ Твоя информация:\n"
+        f"Никнейм: {nickname}\n"
+        f"Статус: {status}\n"
+    )
+   
+ 
 @router.message(Command("mystatus"))
 async def mystatus_cmd(message: Message, session: AsyncSession):
     args = await validate_command_args(message, max_args=1)
     if args is None:
         return
     
-    chat = await get_or_create_chat(session, message.chat.id)
+    user = await require_current_user(session, message)
+    if user is None:
+        return
     
-    chat_id = chat.id
-    tg_user_id = message.from_user.id
-    
-    user = await get_user(session, chat_id, tg_user_id)
-    
-    if user:
-        await message.answer(
-            f"ℹ️ Ваш статус: {'Активный' if user.is_active else 'Неактивный'}\n"
-        )
-    else:
-        await message.answer("❌ Ошибка. Вы не зарегистрированы. Сначала используйте /registerme.")
+    status = "Активный" if user.is_active else "Неактивный"
+
+    await message.answer(
+        f"ℹ️ Ваш статус: {status}\n"
+    )
 
 
-    
 @router.message(Command("myroles"))
 async def myroles_cmd(message: Message, session: AsyncSession):
     command = message.text.split()[0] 
@@ -66,22 +58,19 @@ async def myroles_cmd(message: Message, session: AsyncSession):
         "Команда на данный момент не реализована."
     )
     
+
 @router.message(Command("mynickname"))
 async def mynickname_cmd(message: Message, session: AsyncSession):
     args = await validate_command_args(message, max_args=1)
     if args is None:
         return
     
-    chat = await get_or_create_chat(session, message.chat.id)
+    user = await require_current_user(session, message)
+    if user is None:
+        return
     
-    chat_id = chat.id
-    tg_user_id = message.from_user.id
+    nickname = user.nickname or "Не указан"
     
-    user = await get_user(session, chat_id, tg_user_id)
-    
-    if user:
-        await message.answer(
-            f"ℹ️ Ваш никнейм: {user.nickname if user.nickname else 'Не указан'}\n"
-        )
-    else:
-        await message.answer("❌ Ошибка. Вы не зарегистрированы. Сначала используйте /registerme.")
+    await message.answer(
+        f"ℹ️ Ваш никнейм: {nickname}\n"
+    )
