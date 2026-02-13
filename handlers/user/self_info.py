@@ -1,6 +1,6 @@
 from aiogram import Router
 from aiogram.types import Message
-from aiogram.filters import Command
+from aiogram.filters import Command, CommandObject
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from utils.command_args import validate_command_args
@@ -10,8 +10,12 @@ router = Router()
 
 
 @router.message(Command("myinfo"))
-async def myinfo_cmd(message: Message, session: AsyncSession):
-    args = await validate_command_args(message, max_args=1)
+async def myinfo_cmd(
+    message: Message, 
+    command: CommandObject, 
+    session: AsyncSession
+):
+    args = await validate_command_args(message, command, max_args=0)
     if args is None:
         return
     
@@ -30,8 +34,12 @@ async def myinfo_cmd(message: Message, session: AsyncSession):
    
  
 @router.message(Command("mystatus"))
-async def mystatus_cmd(message: Message, session: AsyncSession):
-    args = await validate_command_args(message, max_args=1)
+async def mystatus_cmd(
+    message: Message, 
+    command: CommandObject, 
+    session: AsyncSession
+):
+    args = await validate_command_args(message, command, max_args=0)
     if args is None:
         return
     
@@ -47,7 +55,10 @@ async def mystatus_cmd(message: Message, session: AsyncSession):
 
 
 @router.message(Command("myroles"))
-async def myroles_cmd(message: Message, session: AsyncSession):
+async def myroles_cmd(
+    message: Message,  
+    session: AsyncSession
+):
     command = message.text.split()[0] 
     args = message.text.split(maxsplit=1)
     args_text = args[1] if len(args) > 1 else ""
@@ -60,8 +71,12 @@ async def myroles_cmd(message: Message, session: AsyncSession):
     
 
 @router.message(Command("mynickname"))
-async def mynickname_cmd(message: Message, session: AsyncSession):
-    args = await validate_command_args(message, max_args=1)
+async def mynickname_cmd(
+    message: Message, 
+    command: CommandObject, 
+    session: AsyncSession
+):
+    args = await validate_command_args(message, command, max_args=0)
     if args is None:
         return
     
