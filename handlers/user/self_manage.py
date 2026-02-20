@@ -1,11 +1,10 @@
-import shlex
 from aiogram import Router
 from aiogram.types import Message
 from aiogram.filters import Command, CommandObject
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.repositories.user_repo import delete_user, create_user, update_user_active, update_user_nickname
-from utils.command_args import validate_command_args
+from utils.validator import validate_command_args
 from utils.current_user import get_current_user_with_chat_ids, require_current_user
 
 router = Router()
@@ -17,8 +16,10 @@ async def setactive_status(
     session: AsyncSession, 
     is_active: bool
 ):
-    args = await validate_command_args(message, command, max_args=0)
-    if args is None:
+    try:
+        await validate_command_args(command, max_args=0)
+    except ValueError as e:
+        await message.answer(f"❌ Ошибка: {e}")
         return
     
     user = await require_current_user(session, message)
@@ -36,8 +37,10 @@ async def registerme_cmd(
     command: CommandObject, 
     session: AsyncSession
 ):
-    args = await validate_command_args(message, command, max_args=1)
-    if args is None:
+    try:
+        args = await validate_command_args(command, max_args=1)
+    except ValueError as e:
+        await message.answer(f"❌ Ошибка: {e}")
         return
     
     user, chat_id, tg_user_id = await get_current_user_with_chat_ids(session, message)
@@ -58,8 +61,10 @@ async def unregisterme_cmd(
     command: CommandObject, 
     session: AsyncSession
 ):
-    args = await validate_command_args(message, command, max_args=0)
-    if args is None:
+    try:
+        await validate_command_args(command, max_args=0)
+    except ValueError as e:
+        await message.answer(f"❌ Ошибка: {e}")
         return
     
     user = await require_current_user(session, message)
@@ -76,8 +81,10 @@ async def setnicknameme_cmd(
     command: CommandObject, 
     session: AsyncSession
 ):
-    args = await validate_command_args(message, command, min_args=1, max_args=1)
-    if args is None:
+    try:
+        args = await validate_command_args(command, min_args=1, max_args=1)
+    except ValueError as e:
+        await message.answer(f"❌ Ошибка: {e}")
         return
     
     user = await require_current_user(session, message)

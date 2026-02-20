@@ -3,7 +3,7 @@ from aiogram.types import Message
 from aiogram.filters import Command, CommandObject
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from utils.command_args import validate_command_args
+from utils.validator import validate_command_args
 from utils.current_user import require_current_user
 
 router = Router()
@@ -15,8 +15,10 @@ async def myinfo_cmd(
     command: CommandObject, 
     session: AsyncSession
 ):
-    args = await validate_command_args(message, command, max_args=0)
-    if args is None:
+    try:
+        await validate_command_args(command, max_args=0)
+    except ValueError as e:
+        await message.answer(f"❌ Ошибка: {e}")
         return
     
     user = await require_current_user(session, message)
@@ -39,8 +41,10 @@ async def mystatus_cmd(
     command: CommandObject, 
     session: AsyncSession
 ):
-    args = await validate_command_args(message, command, max_args=0)
-    if args is None:
+    try:
+        await validate_command_args(command, max_args=0)
+    except ValueError as e:
+        await message.answer(f"❌ Ошибка: {e}")
         return
     
     user = await require_current_user(session, message)
@@ -76,8 +80,10 @@ async def mynickname_cmd(
     command: CommandObject, 
     session: AsyncSession
 ):
-    args = await validate_command_args(message, command, max_args=0)
-    if args is None:
+    try:
+        await validate_command_args(command, max_args=0)
+    except ValueError as e:
+        await message.answer(f"❌ Ошибка: {e}")
         return
     
     user = await require_current_user(session, message)

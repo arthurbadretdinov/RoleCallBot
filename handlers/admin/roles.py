@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from database.repositories.chat_repo import get_or_create_chat
 from database.repositories.role_repo import create_role, get_role
 from middlewares.is_admin import AdminOnlyMiddleware
-from utils.command_args import validate_command_args
+from utils.validator import validate_command_args
 
 router = Router()
 router.message.middleware(AdminOnlyMiddleware())
@@ -18,10 +18,12 @@ async def createrole_cmd(
     command: CommandObject, 
     session: AsyncSession
 ):
-    args = await validate_command_args(message, command, min_args=1, max_args=1)
-    if args is None:
+    try:
+        args = await validate_command_args(command, min_args=1, max_args=1)
+    except ValueError as e:
+        await message.answer(f"❌ Ошибка: {e}")
         return
-    
+        
     chat = await  get_or_create_chat(session, message.chat.id)
     role = await get_role(session, chat.id, args[0])
     if role:
@@ -33,6 +35,7 @@ async def createrole_cmd(
     
     await create_role(session, chat_id, role_name)
     await message.answer(f"✅ Роль '{role_name}' успешно создана.")
+        
     
     
 @router.message(Command("deleterole"))
