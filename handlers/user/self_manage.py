@@ -4,7 +4,7 @@ from aiogram.filters import Command, CommandObject
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.repositories.user_repo import delete_user, create_user, update_user_active, update_user_nickname
-from utils.validator import validate_command_args
+from utils.validator import validate_command_args, validate_length
 from utils.current_user import get_current_user_with_chat_ids, require_current_user
 
 router = Router()
@@ -39,6 +39,7 @@ async def registerme_cmd(
 ):
     try:
         args = await validate_command_args(command, max_args=1)
+        nickname = validate_length(args[0], 64) if args else None 
     except ValueError as e:
         await message.answer(f"❌ Ошибка: {e}")
         return
@@ -49,7 +50,6 @@ async def registerme_cmd(
         return
     
     username = message.from_user.username
-    nickname = args[0] if len(args) == 1 else None   
     
     await create_user(session, chat_id, tg_user_id, username=username, nickname=nickname)
     await message.answer("✅ Вы успешно зарегистрированы!")
@@ -83,6 +83,7 @@ async def setnicknameme_cmd(
 ):
     try:
         args = await validate_command_args(command, min_args=1, max_args=1)
+        nickname = validate_length(args[0], 64)
     except ValueError as e:
         await message.answer(f"❌ Ошибка: {e}")
         return
@@ -91,7 +92,6 @@ async def setnicknameme_cmd(
     if user is None:
         return
     
-    nickname = args[0]
     await update_user_nickname(session, user, nickname)
     await message.answer(f"✅ Ваш никнейм изменён на: {nickname}")
     

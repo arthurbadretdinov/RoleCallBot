@@ -24,3 +24,18 @@ async def validate_command_args(
         )
     
     return args
+
+
+def validate_length(
+    value: str,
+    max_length: int = 64
+) -> None:
+    value = value.strip()
+    
+    if not value: 
+        raise ValueError("строка не может быть пустой")
+    
+    if len(value) > max_length:
+        raise ValueError(f"максимальная длина - {max_length} символов")
+    
+    return value
