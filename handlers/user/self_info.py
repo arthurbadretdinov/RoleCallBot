@@ -3,8 +3,9 @@ from aiogram.types import Message
 from aiogram.filters import Command, CommandObject
 from sqlalchemy.ext.asyncio import AsyncSession
 
+
+from database.services.user_service import require_current_chat_and_user
 from utils.validator import validate_command_args
-from utils.current_user import require_current_user
 
 router = Router()
 
@@ -21,7 +22,7 @@ async def myinfo_cmd(
         await message.answer(f"❌ Ошибка: {e}")
         return
     
-    user = await require_current_user(session, message)
+    _, user = await require_current_chat_and_user(session, message)
     if user is None:
         return
 
@@ -47,7 +48,7 @@ async def mystatus_cmd(
         await message.answer(f"❌ Ошибка: {e}")
         return
     
-    user = await require_current_user(session, message)
+    _, user = await require_current_chat_and_user(session, message)
     if user is None:
         return
     
@@ -86,7 +87,7 @@ async def mynickname_cmd(
         await message.answer(f"❌ Ошибка: {e}")
         return
     
-    user = await require_current_user(session, message)
+    _, user = await require_current_chat_and_user(session, message)
     if user is None:
         return
     

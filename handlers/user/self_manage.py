@@ -4,8 +4,8 @@ from aiogram.filters import Command, CommandObject
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.repositories.user_repo import delete_user, create_user, update_user_active, update_user_nickname
+from database.services.user_service import get_current_chat_and_user, require_current_chat_and_user
 from utils.validator import validate_command_args, validate_length
-from utils.current_user import get_current_user_with_chat_ids, require_current_user
 
 router = Router()
 
@@ -22,7 +22,7 @@ async def setactive_status(
         await message.answer(f"❌ Ошибка: {e}")
         return
     
-    user = await require_current_user(session, message)
+    _, user = await require_current_chat_and_user(session, message)
     if user is None:
         return
     
@@ -44,12 +44,14 @@ async def registerme_cmd(
         await message.answer(f"❌ Ошибка: {e}")
         return
     
-    user, chat_id, tg_user_id = await get_current_user_with_chat_ids(session, message)
+    chat, user = await get_current_chat_and_user(session, message)
     if user:
         await message.answer("❌ Вы уже зарегистрированы.")
         return
     
     username = message.from_user.username
+    chat_id = chat.id
+    tg_user_id = message.from_user.id
     
     await create_user(session, chat_id, tg_user_id, username=username, nickname=nickname)
     await message.answer("✅ Вы успешно зарегистрированы!")
@@ -67,7 +69,7 @@ async def unregisterme_cmd(
         await message.answer(f"❌ Ошибка: {e}")
         return
     
-    user = await require_current_user(session, message)
+    _, user = await require_current_chat_and_user(session, message)
     if user is None:
         return
     
@@ -88,7 +90,7 @@ async def setnicknameme_cmd(
         await message.answer(f"❌ Ошибка: {e}")
         return
     
-    user = await require_current_user(session, message)
+    _, user = await require_current_chat_and_user(session, message)
     if user is None:
         return
     
