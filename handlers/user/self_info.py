@@ -17,13 +17,10 @@ async def myinfo_cmd(
     session: AsyncSession
 ):
     try:
+        _, user = await require_current_chat_and_user(session, message)
         await validate_command_args(command, max_args=0)
     except ValueError as e:
         await message.answer(f"❌ Ошибка: {e}")
-        return
-    
-    _, user = await require_current_chat_and_user(session, message)
-    if user is None:
         return
 
     nickname = user.nickname or "Не указан"
@@ -43,13 +40,10 @@ async def mystatus_cmd(
     session: AsyncSession
 ):
     try:
+        _, user = await require_current_chat_and_user(session, message)
         await validate_command_args(command, max_args=0)
     except ValueError as e:
         await message.answer(f"❌ Ошибка: {e}")
-        return
-    
-    _, user = await require_current_chat_and_user(session, message)
-    if user is None:
         return
     
     status = "Активный" if user.is_active else "Неактивный"
@@ -82,13 +76,10 @@ async def mynickname_cmd(
     session: AsyncSession
 ):
     try:
+        _, user = await require_current_chat_and_user(session, message)
         await validate_command_args(command, max_args=0)
     except ValueError as e:
         await message.answer(f"❌ Ошибка: {e}")
-        return
-    
-    _, user = await require_current_chat_and_user(session, message)
-    if user is None:
         return
     
     nickname = user.nickname or "Не указан"
