@@ -1,10 +1,14 @@
+from concurrent.futures import wait
+
 from aiogram import Router
 from aiogram.types import Message
 from aiogram.filters import Command, CommandObject
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.repositories.chat_repo import get_or_create_chat
-from database.repositories.role_repo import create_role, get_role
+from database.repositories.role_repo import create_role
+from database.services.role_service import ensure_role_unique
 from middlewares.is_admin import AdminOnlyMiddleware
 from utils.validator import validate_command_args, validate_length
 
@@ -21,19 +25,21 @@ async def createrole_cmd(
     try:
         args = await validate_command_args(command, min_args=1, max_args=1)
         role_name = validate_length(args[0], 64)
+        
+        chat = await get_or_create_chat(session, message.chat.id)
+        chat_id = chat.id
+        
+        await ensure_role_unique(session, chat_id, role_name)
+        
+        try:
+            await create_role(session, chat_id, role_name)
+        except IntegrityError:
+            await session.rollback()
+            raise ValueError("роль с таким именем уже существует.")
     except ValueError as e:
         await message.answer(f"❌ Ошибка: {e}")
         return
-        
-    chat = await  get_or_create_chat(session, message.chat.id)
-    role = await get_role(session, chat.id, role_name)
-    if role:
-        await message.answer("❌ Роль с таким именем уже существует.")
-        return
     
-    chat_id = chat.id
-    
-    await create_role(session, chat_id, role_name)
     await message.answer(f"✅ Роль '{role_name}' успешно создана.")
         
     
