@@ -8,5 +8,5 @@ async def ensure_role_unique(session: AsyncSession, chat_id: int, role_name: str
     existing = await get_role(session, chat_id, role_name)
     
     if existing:
-        raise ValueError("роль с таким именем уже существует.")
+        raise ValueError("роль с таким именем уже существует")
     

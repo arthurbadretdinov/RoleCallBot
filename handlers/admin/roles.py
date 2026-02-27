@@ -10,7 +10,7 @@ from database.repositories.chat_repo import get_or_create_chat
 from database.repositories.role_repo import create_role
 from database.services.role_service import ensure_role_unique
 from middlewares.is_admin import AdminOnlyMiddleware
-from utils.validator import validate_command_args, validate_length
+from utils.validator import validate_command_args, validate_length, validate_name
 
 router = Router()
 router.message.middleware(AdminOnlyMiddleware())
@@ -22,25 +22,39 @@ async def createrole_cmd(
     command: CommandObject, 
     session: AsyncSession
 ):
+    chat = await get_or_create_chat(session, message.chat.id)
+    chat_id = chat.id
+    
     try:
-        args = await validate_command_args(command, min_args=1, max_args=1)
-        role_name = validate_length(args[0], 64)
+        args = validate_command_args(command.args, min_args=1)
+    except ValueError as e:
+        await message.answer(f"❌ Ошибка: {e}.")
+        return
         
-        chat = await get_or_create_chat(session, message.chat.id)
-        chat_id = chat.id
+    args = list(set(args))
+    
+    messages = []
         
-        await ensure_role_unique(session, chat_id, role_name)
-        
+    for role_name in args:
         try:
+            validate_name(role_name)
+            validate_length(role_name, 64)
+            await ensure_role_unique(session, chat_id, role_name)
+            
             await create_role(session, chat_id, role_name)
+            messages.append(f"✅ {role_name} - cоздана.")
+            
+        except ValueError as e:
+            messages.append(f"❌ {role_name} - ошибка: {e}.")
+        
         except IntegrityError:
             await session.rollback()
-            raise ValueError("роль с таким именем уже существует.")
-    except ValueError as e:
-        await message.answer(f"❌ Ошибка: {e}")
-        return
-    
-    await message.answer(f"✅ Роль '{role_name}' успешно создана.")
+            messages.append(f"❌ {role_name} - ошибка: роль с таким именем уже существует.")
+        
+    await message.answer("\n".join(messages))
+        
+        
+
         
     
     

@@ -19,7 +19,7 @@ async def setactive_status(
 ):
     try:
         _, user = await require_current_chat_and_user(session, message)
-        await validate_command_args(command, max_args=0)
+        validate_command_args(command.args, max_args=0)
     except ValueError as e:
         await message.answer(f"❌ Ошибка: {e}")
         return
@@ -40,7 +40,7 @@ async def registerme_cmd(
         if user:
             raise ValueError("вы уже зарегистрированы.")
         
-        args = await validate_command_args(command, max_args=1)
+        args = validate_command_args(command.args, max_args=1)
         
         chat_id = chat.id
         tg_user_id = message.from_user.id
@@ -69,7 +69,7 @@ async def unregisterme_cmd(
 ):
     try:
         _, user = await require_current_chat_and_user(session, message)
-        await validate_command_args(command, max_args=0)
+        validate_command_args(command.args, max_args=0)
     except ValueError as e:
         await message.answer(f"❌ Ошибка: {e}")
         return
@@ -87,7 +87,7 @@ async def setnicknameme_cmd(
     try:
         chat, user = await require_current_chat_and_user(session, message)
         
-        args = await validate_command_args(command, min_args=1, max_args=1)
+        args = validate_command_args(command.args, min_args=1, max_args=1)
         nickname = validate_length(args[0], 64)
         await ensure_nickname_unique(session, chat.id, nickname)
         

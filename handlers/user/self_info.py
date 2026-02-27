@@ -18,7 +18,7 @@ async def myinfo_cmd(
 ):
     try:
         _, user = await require_current_chat_and_user(session, message)
-        await validate_command_args(command, max_args=0)
+        validate_command_args(command.args, max_args=0)
     except ValueError as e:
         await message.answer(f"❌ Ошибка: {e}")
         return
@@ -41,7 +41,7 @@ async def mystatus_cmd(
 ):
     try:
         _, user = await require_current_chat_and_user(session, message)
-        await validate_command_args(command, max_args=0)
+        validate_command_args(command.args, max_args=0)
     except ValueError as e:
         await message.answer(f"❌ Ошибка: {e}")
         return
@@ -77,7 +77,7 @@ async def mynickname_cmd(
 ):
     try:
         _, user = await require_current_chat_and_user(session, message)
-        await validate_command_args(command, max_args=0)
+        validate_command_args(command.args, max_args=0)
     except ValueError as e:
         await message.answer(f"❌ Ошибка: {e}")
         return
