@@ -46,9 +46,6 @@ def validate_name(
     if name != name.strip():
         raise ValueError(f"имя не должно содержать пробелы в начале или конце")
     
-    if re.search(r"[\n\t\r]", name):
-        raise ValueError(f"имя не должно содержать невидимые символы (табуляции, переводы строки)")
-    
     if re.search(r"\s{2,}", name):
         raise ValueError(f"имя не должно содержать несколько пробелов подряд")
     

@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.repositories.user_repo import delete_user, create_user, update_user_active, update_user_nickname
 from database.services.user_service import ensure_nickname_unique, get_current_chat_and_user, require_current_chat_and_user
-from utils.validator import validate_command_args, validate_length
+from utils.validator import validate_command_args, validate_length, validate_name
 
 router = Router()
 
@@ -45,8 +45,13 @@ async def registerme_cmd(
         chat_id = chat.id
         tg_user_id = message.from_user.id
         username = message.from_user.username
-        nickname = validate_length(args[0], 64) if args else None
-        await ensure_nickname_unique(session, chat_id, nickname) 
+        nickname = None
+        
+        if args:
+            nickname = args[0]
+            validate_name(nickname)
+            validate_length(nickname, 64) if args else None
+            await ensure_nickname_unique(session, chat_id, nickname) 
 
         try:
             await create_user(session, chat_id, tg_user_id, username=username, nickname=nickname)
@@ -88,7 +93,10 @@ async def setnicknameme_cmd(
         chat, user = await require_current_chat_and_user(session, message)
         
         args = validate_command_args(command.args, min_args=1, max_args=1)
-        nickname = validate_length(args[0], 64)
+        
+        nickname = args[0]
+        validate_name(nickname)
+        validate_length(nickname, 64)
         await ensure_nickname_unique(session, chat.id, nickname)
         
         try:
