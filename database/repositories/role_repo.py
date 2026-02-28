@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import select, delete
 
 from database.models.role import Role
 
@@ -24,6 +24,15 @@ async def get_existing_role_names(session, chat_id, names):
     return result.scalars().all()
 
 
-def create_roles(session, chat_id, role_names): 
+async def create_roles(session, chat_id, role_names): 
     roles = [Role(chat_id=chat_id, name=name) for name in role_names]
     session.add_all(roles)
+  
+    
+async def delete_roles(session, chat_id, role_names): 
+    stmt = delete(Role).where(
+        Role.chat_id == chat_id,
+        Role.name.in_(role_names)
+    )
+    await session.execute(stmt)
+    

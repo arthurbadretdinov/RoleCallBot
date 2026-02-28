@@ -6,7 +6,7 @@ from aiogram.filters import Command, CommandObject
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.repositories.chat_repo import get_or_create_chat
-from database.repositories.role_repo import create_roles, get_existing_role_names
+from database.repositories.role_repo import create_roles, delete_roles, get_existing_role_names
 from middlewares.is_admin import AdminOnlyMiddleware
 from utils.validator import validate_command_args, validate_length, validate_name
 
@@ -50,7 +50,7 @@ async def createrole_cmd(
         
     try:
         if roles_to_add:
-            create_roles(session, chat_id, roles_to_add)
+            await create_roles(session, chat_id, roles_to_add)
             await session.commit()
     except Exception:
         await session.rollback()
@@ -58,24 +58,47 @@ async def createrole_cmd(
         return
     
     await message.answer("\n".join(messages))
-        
-        
-        
-
-        
     
-    
+# TODO: Для PostegreSQL заменить SELECT + DELETE на DELETE ... RETURNING    
 @router.message(Command("deleterole"))
-async def deleterole_cmd(message: Message, session: AsyncSession):
-    command = message.text.split()[0] 
-    args = message.text.split(maxsplit=1)
-    args_text = args[1] if len(args) > 1 else ""
+async def deleterole_cmd(
+    message: Message, 
+    command: CommandObject, 
+    session: AsyncSession
+):
+    chat = await get_or_create_chat(session, message.chat.id)
+    chat_id = chat.id
     
-    await message.answer(
-        f"Команда: {command}\n"
-        f"Аргументы: {args_text}\n"
-        "Команда на данный момент не реализована."
-    )
+    try:
+        args = validate_command_args(command.args, min_args=1)
+    except ValueError as e:
+        await message.answer(f"❌ Ошибка: {e}.")
+        return
+        
+    args = list(dict.fromkeys(args))
+    
+    messages = []
+    existing_names = await get_existing_role_names(session, chat_id, args)
+    roles_to_delete = []
+        
+    for role_name in args:
+        try:
+            validate_name(role_name)
+            validate_length(role_name, 64)
+            
+            if role_name not in existing_names:
+                raise ValueError("роли не существует")
+            
+            roles_to_delete.append(role_name)
+            messages.append(f"✅ {role_name} - удалена.")  
+        except ValueError as e:
+            messages.append(f"❌ {role_name} - ошибка: {e}.")
+        
+    if roles_to_delete:
+        await delete_roles(session, chat_id, roles_to_delete)
+        await session.commit()
+            
+    await message.answer("\n".join(messages))
 
     
 @router.message(Command("addroleuser"))
