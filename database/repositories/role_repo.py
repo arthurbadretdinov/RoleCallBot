@@ -12,10 +12,18 @@ async def get_role(session, chat_id, role_name):
     return role
 
 
-async def create_role(session, chat_id, role_name): 
-    role = Role(
-        chat_id=chat_id, 
-        name=role_name
+async def get_existing_role_names(session, chat_id, names):
+    if not names:
+        return []
+    
+    stmt = select(Role.name).where(
+        Role.chat_id == chat_id,
+        Role.name.in_(names)
     )
-    session.add(role)
-    await session.commit()
+    result = await session.execute(stmt)
+    return result.scalars().all()
+
+
+def create_roles(session, chat_id, role_names): 
+    roles = [Role(chat_id=chat_id, name=name) for name in role_names]
+    session.add_all(roles)

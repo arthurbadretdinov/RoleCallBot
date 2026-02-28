@@ -3,12 +3,10 @@ from concurrent.futures import wait
 from aiogram import Router
 from aiogram.types import Message
 from aiogram.filters import Command, CommandObject
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.repositories.chat_repo import get_or_create_chat
-from database.repositories.role_repo import create_role
-from database.services.role_service import ensure_role_unique
+from database.repositories.role_repo import create_roles, get_existing_role_names
 from middlewares.is_admin import AdminOnlyMiddleware
 from utils.validator import validate_command_args, validate_length, validate_name
 
@@ -31,27 +29,36 @@ async def createrole_cmd(
         await message.answer(f"❌ Ошибка: {e}.")
         return
         
-    args = list(set(args))
+    args = list(dict.fromkeys(args))
     
     messages = []
+    existing_names = await get_existing_role_names(session, chat_id, args)
+    roles_to_add = []
         
     for role_name in args:
         try:
             validate_name(role_name)
             validate_length(role_name, 64)
-            await ensure_role_unique(session, chat_id, role_name)
             
-            await create_role(session, chat_id, role_name)
-            messages.append(f"✅ {role_name} - cоздана.")
+            if role_name in existing_names:
+                raise ValueError("роль с таким именем уже существует.")
             
+            roles_to_add.append(role_name)
+            messages.append(f"✅ {role_name} - cоздана.")  
         except ValueError as e:
             messages.append(f"❌ {role_name} - ошибка: {e}.")
         
-        except IntegrityError:
-            await session.rollback()
-            messages.append(f"❌ {role_name} - ошибка: роль с таким именем уже существует.")
-        
+    try:
+        if roles_to_add:
+            create_roles(session, chat_id, roles_to_add)
+            await session.commit()
+    except Exception:
+        await session.rollback()
+        await message.answer(f"❌ Ошибка: не удалось создать роли. Попробуйте еще раз.")
+        return
+    
     await message.answer("\n".join(messages))
+        
         
         
 
