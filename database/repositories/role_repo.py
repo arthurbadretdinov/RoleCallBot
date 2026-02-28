@@ -12,6 +12,14 @@ async def get_role(session, chat_id, role_name):
     return role
 
 
+async def get_all_role_names(session, chat_id):
+    stmt = select(Role.name).where(
+        Role.chat_id == chat_id
+    )
+    result = await session.execute(stmt)
+    return result.scalars().all()
+
+
 async def get_existing_role_names(session, chat_id, names):
     if not names:
         return []
